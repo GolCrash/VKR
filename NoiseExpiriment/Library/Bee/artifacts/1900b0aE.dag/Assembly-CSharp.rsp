@@ -360,6 +360,7 @@
 "Assets/Script/NoiseExp.cs"
 "Assets/Script/Tectonic.cs"
 "Assets/Script/textGen.cs"
+"Assets/Script/TUH.cs"
 -langversion:9.0
 /deterministic
 /optimize+
