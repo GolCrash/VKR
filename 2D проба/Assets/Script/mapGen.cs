@@ -1,6 +1,12 @@
 ﻿using Assets.Scripts;
+using System;
 using System.Collections.Generic;
+using TMPro;
+using Unity.VisualScripting;
+using UnityEditor.UI;
 using UnityEngine;
+using UnityEngine.UI;
+using static UnityEngine.Rendering.DebugUI;
 
 /// <summary>
 /// Основной класс-генератор карт для процедурной генерации миров
@@ -33,31 +39,45 @@ public class mapGen : MonoBehaviour
         TestCombainMap
     };
 
+    
+
     #region Параметры генерации
     [Header("Общие настройки")]
     /// <summary>Текущий режим отображения карты</summary>
     public DrawMode drawMode;
+
+    public TMP_Dropdown drawModeTest;
     /// <summary>Режим автообновления карты при изменения параметров в редакторе</summary>
     public bool autoUpdate;
     /// <summary>Ширина карты</summary>
-    public int width;
+    
+    public TMP_InputField widthFromField;
+    private int width = 100;
     /// <summary>Высота карты</summary>
-    public int height;
+    public TMP_InputField heightFromField;
+    private int height = 100;
     /// <summary>Зерно для генерации случайных значений</summary>
-    public int seed;
+    public TMP_InputField seedFromField;
+    private int seed;
 
     [Header("Настройки шума")]
     /// <summary>Масштаб шума Перлина, меньшие значения = более детализированный шум</summary>
-    public float noiseScale;
+    public TMP_InputField noiseScaleFromField;
+    private float noiseScale;
     /// <summary>Количество октав фрактального шума, каждая октава добавляет детализация</summary>
-    public int octaves;
+    public TMP_InputField octavesFromField;
+    private int octaves;
     /// <summary>Коэффициент стойкости, определяет влияние каждой следующей октавы</summary>
+    public Slider persistanceFromField;
     [Range(0, 1)]
-    public float persistance;
+    private float persistance;
     /// <summary>Коэффициент лакунарности, определяет увеличение частоты каждой следующей октавы</summary>
-    public float lacunarity;
+    public TMP_InputField lacunarityFromField;
+    private float lacunarity;
     /// <summary>Смещение координат карты шума</summary>
-    public Vector2 offset;
+    public TMP_InputField XFromField;
+    public TMP_InputField YFromField;
+    private Vector2 offset;
 
     [Header("Настройки гассовского распределения")]
     /// <summary>Режим использования карты затухания</summary>
@@ -65,17 +85,21 @@ public class mapGen : MonoBehaviour
     /// <summary>Режим эллиптической карты затухания</summary>
     public bool ellipticalIsland = false;
     /// <summary>Стандартное отклонение гауссова распрделения по оси X</summary>
+    public Slider gaussianSigmaXFromField;
     [Range(0.1f, 1f)]
-    public float gaussianSigmaX = 0.3f;
+    private float gaussianSigmaX = 0.3f;
     /// <summary>Стандартное отклонение гауссова распрделения по оси Y</summary>
+    public Slider gaussianSigmaYFromField;
     [Range(0.1f, 1f)]
-    public float gaussianSigmaY = 0.3f;
+    private float gaussianSigmaY = 0.3f;
     /// <summary>Амплитуда гауссова распределения, влияющая на интенсивность затухания</summary>
+    public Slider gaussianAmplitudeFromField;
     [Range(0.5f, 2f)]
-    public float gaussianAmplitude = 1f;
+    private float gaussianAmplitude = 1f;
     /// <summary>Угол поворота эллиптической карты в градусах</summary>
+    public Slider islandRotationFromField;
     [Range(0f, 90f)]
-    public float islandRotation = 0f;
+    private float islandRotation = 0f;
 
     [Header("Настройки диаграммы Вороного")]
     /// <summary>Режим использования карты диграммы Ворного</summary>
@@ -112,6 +136,81 @@ public class mapGen : MonoBehaviour
         GenerateFalloffMap();
     }
 
+    private void DataFromUI()
+    {
+        width = CheckInputField(widthFromField);
+        height = CheckInputField(heightFromField);
+        seed = CheckInputFieldForSeed(seedFromField);
+
+        noiseScale = CheckInputFieldForFloat(noiseScaleFromField);
+        octaves = CheckInputField(octavesFromField);
+        persistance = persistanceFromField.value;
+        lacunarity = CheckInputFieldForFloat(lacunarityFromField);
+        offset.x = CheckInputField(XFromField);
+        offset.y = CheckInputField(YFromField);
+
+        gaussianSigmaX = gaussianSigmaXFromField.value;
+        gaussianSigmaY = gaussianSigmaYFromField.value;
+        gaussianAmplitude = gaussianAmplitudeFromField.value;
+        islandRotation = islandRotationFromField.value;
+    }
+
+    private int CheckInputField(TMP_InputField test)
+    {
+        if (string.IsNullOrEmpty(test.text))
+        {
+            Debug.Log("Поле не может быть пустым");
+            return 100;
+        }
+
+        else if (!int.TryParse(test.text, out int parsedValue))
+        {
+            Debug.Log("Введите целое число");
+            return 100;
+        }
+
+        else
+            return Int32.Parse(test.text);
+    }
+
+    private int CheckInputFieldForSeed(TMP_InputField test)
+    {
+        System.Random rnd = new System.Random();
+
+        if (string.IsNullOrEmpty(test.text))
+        {
+            Debug.Log("Поле не может быть пустым");
+            return rnd.Next(0,10000);
+        }
+
+        else if (!int.TryParse(test.text, out int parsedValue))
+        {
+            Debug.Log("Введите целое число");
+            return rnd.Next(0, 10000);
+        }
+
+        else
+            return Int32.Parse(test.text);
+    }
+
+    private float CheckInputFieldForFloat(TMP_InputField test)
+    {
+        if (string.IsNullOrEmpty(test.text))
+        {
+            Debug.Log("Поле не может быть пустым");
+            return 0f;
+        }
+
+        else if (!float.TryParse(test.text, out float parsedValue))
+        {
+            Debug.Log("Введите целое число");
+            return 0f;
+        }
+
+        else
+            return float.Parse(test.text);
+    }
+
     /// <summary>
     /// Основной метод генерации карты в соответствии с выбранным режимом отображения
     /// </summary>
@@ -124,6 +223,12 @@ public class mapGen : MonoBehaviour
     /// </remarks>
     public void GenerateMap()
     {
+        DataFromUI();
+
+        GenerateFalloffMap();
+
+        Debug.Log(drawModeTest.options[drawModeTest.value].text);
+
         centersVoronoi = new Vector2Int[gridSizeX * gridSizeY];     //Инициализация массива центров регионов Вороного
         
         //Генерацияы диаграммы Вороного и получение матрицы регионов
@@ -150,12 +255,12 @@ public class mapGen : MonoBehaviour
                 offset
             );
 
-        if (drawMode == DrawMode.NoiseMap)
+        if (drawModeTest.options[drawModeTest.value].text == "Карта шума")
         {
             //Отображение карты высот
             display.DrawTexture(textGen.TextureFromHight(noiseMap));
         }
-        else if (drawMode == DrawMode.ColorMap)
+        else if (drawModeTest.options[drawModeTest.value].text == "Карта одного материка")
         {
             //Отображение раскрашенной карты высот
             Color[] colorMap = GenerateColorMap(noiseMap);
@@ -167,12 +272,12 @@ public class mapGen : MonoBehaviour
             display.DrawTexture(textGen.TextureFromHight(FalloffMap.GenerateFalloffMap(
                 width, height, gaussianSigmaX, gaussianSigmaY, islandRotation, gaussianAmplitude)));
         }
-        else if (drawMode == DrawMode.VoronoiMap)
+        else if (drawModeTest.options[drawModeTest.value].text == "Карта тектонических плит")
         {
             //Отображение диаграммы Вороного
             display.DrawTexture(textGen.TextureFromVoronoi(regionMap));
         }
-        else if (drawMode == DrawMode.TestCombainMap)
+        else if (drawModeTest.options[drawModeTest.value].text == "Карта мира")
         {
             //Отображение комбинированной карты с масками Вороного
             Texture2D combinedMap = CombainMaps.CombineWithVoronoiMasks(

@@ -46,6 +46,9 @@ public static class NoiseExp
         float maxNoiseHeight = float.MinValue;
         float minNoiseHeight = float.MaxValue;
 
+        float halfWidth = mapWidth / 2f;
+        float halfHeight = mapHeight / 2f;
+
         for (int y = 0; y < mapHeight; y++)
         {
             for (int x = 0; x < mapWidth; x++)
@@ -57,8 +60,8 @@ public static class NoiseExp
                 for (int i = 0; i < octaves; i++)
                 {
                     //Вычисляем и нормализуем координаты для выборки шума Перлина
-                    float sampleX = (float)x / scale * frequency + octaveOffsets[i].x;
-                    float sampleY = (float)y / scale * frequency + octaveOffsets[i].y;
+                    float sampleX = ((float)x - halfWidth) / scale * frequency + octaveOffsets[i].x;
+                    float sampleY = ((float)y - halfHeight) / scale * frequency + octaveOffsets[i].y;
 
                     //Получаем значения шума Перлина, и переводим их к виду от -1 до 1
                     float perlinNoise = Mathf.PerlinNoise(sampleX, sampleY) * 2 - 1;

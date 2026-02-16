@@ -13,6 +13,6 @@ public class mapDis : MonoBehaviour
         textureRender.sharedMaterial.mainTexture = texture;
 
         // Масштабируем объект в соответствии с размерами текстуры
-        textureRender.transform.localScale = new Vector3(texture.width, 1, texture.height); // X = ширина текстуры, Z = высота текстуры, Y = 1 (сохраняем толщину)
+        //textureRender.transform.localScale = new Vector3(texture.width, 1, texture.height); // X = ширина текстуры, Z = высота текстуры, Y = 1 (сохраняем толщину)
     }
 }
